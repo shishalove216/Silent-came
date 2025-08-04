@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>無音カメラ - 撮影ボタン内蔵</title>
+  <title>無音カメラ</title>
   <style>
     body {
       font-family: sans-serif;
@@ -15,7 +15,6 @@
       flex-direction: column;
       height: 100vh;
     }
-
     header {
       background-color: #222;
       width: 100%;
@@ -24,7 +23,6 @@
       font-size: 1.2em;
       color: #ccc;
     }
-
     .camera-container {
       position: relative;
       flex: 1;
@@ -33,13 +31,15 @@
       align-items: center;
       background: #000;
     }
-
     video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: filter 0.3s;
     }
-
+    .dark-mode {
+      filter: brightness(1.5) contrast(1.4) saturate(1.2);
+    }
     #snap {
       position: absolute;
       bottom: 20px;
@@ -51,15 +51,14 @@
       border-radius: 50px;
       backdrop-filter: blur(4px);
     }
-
     .controls {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       padding: 0.5em;
       gap: 0.5em;
       background: #111;
     }
-
     button, select {
       padding: 0.5em 1em;
       font-size: 1em;
@@ -68,11 +67,9 @@
       background: #444;
       color: white;
     }
-
     button:hover, select:hover {
       background: #666;
     }
-
     #gallery {
       padding: 0.5em;
       display: flex;
@@ -81,7 +78,6 @@
       gap: 10px;
       background: #000;
     }
-
     .thumb {
       max-width: 100px;
       border: 1px solid #666;
@@ -98,14 +94,18 @@
   <div class="controls">
     <select id="cameraSelect"></select>
     <button id="toggleOrientation">↕ 向き切替</button>
+    <button id="clearGallery">🗑 全削除</button>
   </div>
   <canvas id="canvas" style="display:none;"></canvas>
+  <canvas id="brightnessCanvas" width="64" height="64" style="display:none;"></canvas>
   <div id="gallery"></div>
 
   <script>
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    const brightnessCanvas = document.getElementById("brightnessCanvas");
+    const brightnessCtx = brightnessCanvas.getContext("2d");
     const cameraSelect = document.getElementById("cameraSelect");
     const toggleOrientation = document.getElementById("toggleOrientation");
     const gallery = document.getElementById("gallery");
@@ -136,6 +136,27 @@
       });
     }
 
+    function analyzeBrightness() {
+      brightnessCtx.drawImage(video, 0, 0, 64, 64);
+      const frame = brightnessCtx.getImageData(0, 0, 64, 64);
+      let totalLuminance = 0;
+      for (let i = 0; i < frame.data.length; i += 4) {
+        const r = frame.data[i];
+        const g = frame.data[i + 1];
+        const b = frame.data[i + 2];
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        totalLuminance += luminance;
+      }
+      const avg = totalLuminance / (64 * 64);
+      if (avg < 40) {
+        video.classList.add("dark-mode");
+      } else {
+        video.classList.remove("dark-mode");
+      }
+    }
+
+    setInterval(analyzeBrightness, 1500);
+
     navigator.mediaDevices.enumerateDevices().then(devices => {
       const videoDevices = devices.filter(device => device.kind === "videoinput");
       videoDevices.forEach((device, index) => {
@@ -158,7 +179,7 @@
 
     toggleOrientation.onclick = () => {
       isPortrait = !isPortrait;
-      toggleOrientation.textContent = isPortrait ? "↔ 横向きに戻す" : "↕ 縦向きにする";
+      toggleOrientation.textContent = isPortrait ? "↔ 横向きに戻す" : "↕ 向き切替";
     };
 
     document.getElementById("snap").onclick = () => {
@@ -185,6 +206,10 @@
         img.className = "thumb";
         gallery.prepend(img);
       }, "image/jpeg", 1.0);
+    };
+
+    document.getElementById("clearGallery").onclick = () => {
+      gallery.innerHTML = "";
     };
   </script>
 </body>
