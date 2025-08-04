@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>無音カメラ（ギャラリー＋背面カメラ）</title>
+  <title>超高画質・無音カメラ</title>
   <style>
     body {
       text-align: center;
@@ -19,12 +19,8 @@
     button, select {
       padding: 1em 2em;
       font-size: 1.2em;
-      margin: 1em 0.5em;
+      margin: 0.5em;
       border-radius: 8px;
-    }
-    #downloadLink {
-      display: block;
-      margin-top: 1em;
     }
     #gallery {
       margin-top: 2em;
@@ -34,15 +30,16 @@
       gap: 10px;
     }
     .thumb {
-      max-width: 120px;
+      max-width: 160px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>📷 無音カメラ</h1>
-  <select id="cameraSelect"></select><br />
+  <h1>📷 超高画質・無音カメラ</h1>
+  <select id="cameraSelect"></select>
+  <button id="toggleOrientation">🔄 向き切替</button><br />
   <video id="video" autoplay playsinline></video><br />
   <button id="snap">📸 撮影</button>
   <canvas id="canvas" style="display:none;"></canvas>
@@ -53,8 +50,10 @@
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const cameraSelect = document.getElementById("cameraSelect");
+    const toggleOrientation = document.getElementById("toggleOrientation");
     const gallery = document.getElementById("gallery");
     let currentStream;
+    let isPortrait = false;
 
     function stopStream() {
       if (currentStream) {
@@ -64,18 +63,20 @@
 
     function startCamera(deviceId = null) {
       stopStream();
-      const constraints = deviceId
-        ? { video: { deviceId: { exact: deviceId } } }
-        : { video: { facingMode: { ideal: "environment" } } };
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then(stream => {
-          currentStream = stream;
-          video.srcObject = stream;
-        })
-        .catch(err => {
-          alert("カメラへのアクセスに失敗しました: " + err);
-        });
+      const constraints = {
+        video: {
+          ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: "environment" } }),
+          width: { min: 1920, ideal: 3840, max: 4096 },
+          height: { min: 1080, ideal: 2160, max: 4096 },
+          frameRate: { ideal: 30, max: 60 }
+        }
+      };
+      navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        currentStream = stream;
+        video.srcObject = stream;
+      }).catch(err => {
+        alert("カメラへのアクセスに失敗しました: " + err);
+      });
     }
 
     navigator.mediaDevices.enumerateDevices().then(devices => {
@@ -98,17 +99,35 @@
       startCamera(cameraSelect.value);
     };
 
+    toggleOrientation.onclick = () => {
+      isPortrait = !isPortrait;
+      toggleOrientation.textContent = isPortrait ? "↔ 横向きに戻す" : "🔄 縦向きにする";
+    };
+
     document.getElementById("snap").onclick = () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (isPortrait) {
+        canvas.width = vh;
+        canvas.height = vw;
+        ctx.save();
+        ctx.translate(vh, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(video, 0, 0);
+        ctx.restore();
+      } else {
+        canvas.width = vw;
+        canvas.height = vh;
+        ctx.drawImage(video, 0, 0);
+      }
+
       canvas.toBlob(blob => {
         const url = URL.createObjectURL(blob);
         const img = document.createElement("img");
         img.src = url;
         img.className = "thumb";
         gallery.prepend(img);
-      }, "image/jpeg");
+      }, "image/jpeg", 1.0); // 高画質JPEG
     };
   </script>
 </body>
