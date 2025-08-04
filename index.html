@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>無音カメラ - 縮小カメラ表示</title>
+  <title>無音カメラ - 撮影ボタン内蔵</title>
   <style>
     body {
       font-family: sans-serif;
@@ -13,9 +13,7 @@
       color: white;
       display: flex;
       flex-direction: column;
-      align-items: center;
       height: 100vh;
-      overflow: hidden;
     }
 
     header {
@@ -27,36 +25,43 @@
       color: #ccc;
     }
 
-    main {
+    .camera-container {
+      position: relative;
       flex: 1;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 0.5em;
-      width: 100%;
-      overflow-y: auto;
+      background: #000;
     }
 
     video {
       width: 100%;
-      max-width: 480px;
-      height: 240px; /* 高さを固定してボタンを見えるように */
-      border: 4px solid #333;
-      border-radius: 10px;
-      background: #000;
-      box-shadow: 0 0 10px #111;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #snap {
+      position: absolute;
+      bottom: 20px;
+      padding: 1em 2em;
+      font-size: 1.2em;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #fff;
+      color: white;
+      border-radius: 50px;
+      backdrop-filter: blur(4px);
     }
 
     .controls {
       display: flex;
-      flex-wrap: wrap;
       justify-content: center;
+      padding: 0.5em;
       gap: 0.5em;
-      margin-top: 1em;
+      background: #111;
     }
 
     button, select {
-      padding: 0.8em 1.2em;
+      padding: 0.5em 1em;
       font-size: 1em;
       border-radius: 8px;
       border: none;
@@ -69,11 +74,12 @@
     }
 
     #gallery {
-      margin-top: 1em;
+      padding: 0.5em;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
+      background: #000;
     }
 
     .thumb {
@@ -85,16 +91,16 @@
 </head>
 <body>
   <header>📷 無音カメラ</header>
-  <main>
+  <div class="camera-container">
     <video id="video" autoplay playsinline></video>
-    <div class="controls">
-      <select id="cameraSelect"></select>
-      <button id="toggleOrientation">↕ 向き切替</button>
-      <button id="snap">📸 撮影</button>
-    </div>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div id="gallery"></div>
-  </main>
+    <button id="snap">📸 撮影</button>
+  </div>
+  <div class="controls">
+    <select id="cameraSelect"></select>
+    <button id="toggleOrientation">↕ 向き切替</button>
+  </div>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <div id="gallery"></div>
 
   <script>
     const video = document.getElementById("video");
