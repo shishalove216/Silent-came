@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>超高画質・無音カメラ</title>
+  <title>無音カメラ - 縮小カメラ表示</title>
   <style>
     body {
       font-family: sans-serif;
@@ -14,6 +14,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      height: 100vh;
+      overflow: hidden;
     }
 
     header {
@@ -26,18 +28,23 @@
     }
 
     main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1em;
+      padding: 0.5em;
+      width: 100%;
+      overflow-y: auto;
     }
 
     video {
-      max-width: 100%;
+      width: 100%;
+      max-width: 480px;
+      height: 240px; /* 高さを固定してボタンを見えるように */
       border: 4px solid #333;
       border-radius: 10px;
-      box-shadow: 0 0 10px #111;
       background: #000;
+      box-shadow: 0 0 10px #111;
     }
 
     .controls {
@@ -49,7 +56,7 @@
     }
 
     button, select {
-      padding: 0.8em 1.5em;
+      padding: 0.8em 1.2em;
       font-size: 1em;
       border-radius: 8px;
       border: none;
@@ -62,7 +69,7 @@
     }
 
     #gallery {
-      margin-top: 2em;
+      margin-top: 1em;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -70,7 +77,7 @@
     }
 
     .thumb {
-      max-width: 120px;
+      max-width: 100px;
       border: 1px solid #666;
       border-radius: 4px;
     }
