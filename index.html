@@ -6,22 +6,61 @@
   <title>超高画質・無音カメラ</title>
   <style>
     body {
-      text-align: center;
       font-family: sans-serif;
       margin: 0;
-      padding: 1em;
-      background: #f5f5f5;
+      padding: 0;
+      background: #000;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    header {
+      background-color: #222;
+      width: 100%;
+      padding: 0.5em;
+      text-align: center;
+      font-size: 1.2em;
+      color: #ccc;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1em;
+    }
+
     video {
       max-width: 100%;
-      border-radius: 8px;
+      border: 4px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #111;
+      background: #000;
     }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5em;
+      margin-top: 1em;
+    }
+
     button, select {
-      padding: 1em 2em;
-      font-size: 1.2em;
-      margin: 0.5em;
+      padding: 0.8em 1.5em;
+      font-size: 1em;
       border-radius: 8px;
+      border: none;
+      background: #444;
+      color: white;
     }
+
+    button:hover, select:hover {
+      background: #666;
+    }
+
     #gallery {
       margin-top: 2em;
       display: flex;
@@ -29,21 +68,26 @@
       justify-content: center;
       gap: 10px;
     }
+
     .thumb {
-      max-width: 160px;
-      border: 1px solid #ccc;
+      max-width: 120px;
+      border: 1px solid #666;
       border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>📷 超高画質・無音カメラ</h1>
-  <select id="cameraSelect"></select>
-  <button id="toggleOrientation">🔄 向き切替</button><br />
-  <video id="video" autoplay playsinline></video><br />
-  <button id="snap">📸 撮影</button>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <div id="gallery"></div>
+  <header>📷 無音カメラ</header>
+  <main>
+    <video id="video" autoplay playsinline></video>
+    <div class="controls">
+      <select id="cameraSelect"></select>
+      <button id="toggleOrientation">↕ 向き切替</button>
+      <button id="snap">📸 撮影</button>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div id="gallery"></div>
+  </main>
 
   <script>
     const video = document.getElementById("video");
@@ -101,7 +145,7 @@
 
     toggleOrientation.onclick = () => {
       isPortrait = !isPortrait;
-      toggleOrientation.textContent = isPortrait ? "↔ 横向きに戻す" : "🔄 縦向きにする";
+      toggleOrientation.textContent = isPortrait ? "↔ 横向きに戻す" : "↕ 縦向きにする";
     };
 
     document.getElementById("snap").onclick = () => {
@@ -127,7 +171,7 @@
         img.src = url;
         img.className = "thumb";
         gallery.prepend(img);
-      }, "image/jpeg", 1.0); // 高画質JPEG
+      }, "image/jpeg", 1.0);
     };
   </script>
 </body>
