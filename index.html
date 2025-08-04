@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>無音カメラ（カメラ切替）</title>
+  <title>無音カメラ（ギャラリー＋背面カメラ）</title>
   <style>
     body {
       text-align: center;
@@ -26,6 +26,18 @@
       display: block;
       margin-top: 1em;
     }
+    #gallery {
+      margin-top: 2em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .thumb {
+      max-width: 120px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -34,14 +46,14 @@
   <video id="video" autoplay playsinline></video><br />
   <button id="snap">📸 撮影</button>
   <canvas id="canvas" style="display:none;"></canvas>
-  <a id="downloadLink" style="display:none;">画像を保存</a>
+  <div id="gallery"></div>
 
   <script>
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    const link = document.getElementById("downloadLink");
     const cameraSelect = document.getElementById("cameraSelect");
+    const gallery = document.getElementById("gallery");
     let currentStream;
 
     function stopStream() {
@@ -50,12 +62,13 @@
       }
     }
 
-    function startCamera(deviceId) {
+    function startCamera(deviceId = null) {
       stopStream();
+      const constraints = deviceId
+        ? { video: { deviceId: { exact: deviceId } } }
+        : { video: { facingMode: { ideal: "environment" } } };
       navigator.mediaDevices
-        .getUserMedia({
-          video: { deviceId: { exact: deviceId } }
-        })
+        .getUserMedia(constraints)
         .then(stream => {
           currentStream = stream;
           video.srcObject = stream;
@@ -74,7 +87,10 @@
         cameraSelect.appendChild(option);
       });
       if (videoDevices.length > 0) {
-        startCamera(videoDevices[0].deviceId);
+        const preferred = videoDevices.find(d => /back|rear|environment/i.test(d.label));
+        const defaultId = preferred?.deviceId || videoDevices[0].deviceId;
+        startCamera(defaultId);
+        cameraSelect.value = defaultId;
       }
     });
 
@@ -88,10 +104,10 @@
       ctx.drawImage(video, 0, 0);
       canvas.toBlob(blob => {
         const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = "photo.jpg";
-        link.textContent = "画像を保存";
-        link.style.display = "inline";
+        const img = document.createElement("img");
+        img.src = url;
+        img.className = "thumb";
+        gallery.prepend(img);
       }, "image/jpeg");
     };
   </script>
