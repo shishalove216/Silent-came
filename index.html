@@ -1,58 +1,98 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>無音カメラ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>無音カメラ（カメラ切替）</title>
   <style>
-    body { text-align: center; font-family: sans-serif; margin: 0; padding: 1em; background: #f5f5f5; }
-    video { max-width: 100%; border-radius: 8px; }
-    button {
-      padding: 2em 4em;
-      font-size: 2em;
-      margin-top: 1.5em;
-      border: none;
-      border-radius: 12px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1em;
+      background: #f5f5f5;
     }
-    button:hover {
-      background-color: #0056b3;
+    video {
+      max-width: 100%;
+      border-radius: 8px;
     }
-    #downloadLink { display: block; margin-top: 1.5em; font-size: 1.2em; }
+    button, select {
+      padding: 1em 2em;
+      font-size: 1.2em;
+      margin: 1em 0.5em;
+      border-radius: 8px;
+    }
+    #downloadLink {
+      display: block;
+      margin-top: 1em;
+    }
   </style>
 </head>
 <body>
   <h1>📷 無音カメラ</h1>
-  <video id="video" autoplay playsinline></video><br>
+  <select id="cameraSelect"></select><br />
+  <video id="video" autoplay playsinline></video><br />
   <button id="snap">📸 撮影</button>
   <canvas id="canvas" style="display:none;"></canvas>
   <a id="downloadLink" style="display:none;">画像を保存</a>
 
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const link = document.getElementById('downloadLink');
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const link = document.getElementById("downloadLink");
+    const cameraSelect = document.getElementById("cameraSelect");
+    let currentStream;
 
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-      video.srcObject = stream;
-    }).catch(err => {
-      alert('カメラへのアクセスに失敗しました: ' + err);
+    function stopStream() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    function startCamera(deviceId) {
+      stopStream();
+      navigator.mediaDevices
+        .getUserMedia({
+          video: { deviceId: { exact: deviceId } }
+        })
+        .then(stream => {
+          currentStream = stream;
+          video.srcObject = stream;
+        })
+        .catch(err => {
+          alert("カメラへのアクセスに失敗しました: " + err);
+        });
+    }
+
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+      const videoDevices = devices.filter(device => device.kind === "videoinput");
+      videoDevices.forEach((device, index) => {
+        const option = document.createElement("option");
+        option.value = device.deviceId;
+        option.text = device.label || `カメラ ${index + 1}`;
+        cameraSelect.appendChild(option);
+      });
+      if (videoDevices.length > 0) {
+        startCamera(videoDevices[0].deviceId);
+      }
     });
 
-    document.getElementById('snap').onclick = () => {
+    cameraSelect.onchange = () => {
+      startCamera(cameraSelect.value);
+    };
+
+    document.getElementById("snap").onclick = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       canvas.toBlob(blob => {
         const url = URL.createObjectURL(blob);
         link.href = url;
-        link.download = 'photo.jpg';
-        link.textContent = '画像を保存';
-        link.style.display = 'inline';
-      }, 'image/jpeg');
+        link.download = "photo.jpg";
+        link.textContent = "画像を保存";
+        link.style.display = "inline";
+      }, "image/jpeg");
     };
   </script>
 </body>
